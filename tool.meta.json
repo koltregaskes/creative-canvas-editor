@@ -1,0 +1,9 @@
+{
+  "slug": "creative-canvas-editor",
+  "title": "Creative Canvas Editor",
+  "category": "creative",
+  "ownerSession": "creative-canvas-editor-session",
+  "launchMode": "local-pwa",
+  "primaryPort": 4304,
+  "projectType": "creative-canvas-workflow"
+}

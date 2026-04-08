@@ -1,0 +1,17 @@
+{
+  "name": "Creative Canvas Editor",
+  "short_name": "CanvasEditor",
+  "description": "Design creative generation workflows with draggable nodes and exportable workflow packages.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
