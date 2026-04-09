@@ -29,3 +29,9 @@ The current sample workflow shows how to use the editor as the orchestration lay
 - video generation and review
 - audio and SFX planning
 - export and publishing handoff
+
+## Local-Only Files
+
+- `.autolab/` is used for internal AutoResearch and should remain untracked
+- `.env*` files are local-only
+- `.local/` and `*.local.md` are for planning notes and are ignored
