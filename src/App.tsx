@@ -179,6 +179,17 @@ function App() {
 
   const handleImportClick = () => fileInputRef.current?.click()
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(project, null, 2))
+      setImportMessage('Copied workflow JSON')
+    } catch (error) {
+      setImportMessage(
+        error instanceof Error ? error.message : 'Copy failed. Check browser clipboard permissions.',
+      )
+    }
+  }
+
   const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) {
@@ -323,6 +334,9 @@ function App() {
           </p>
           <div className="hero-actions">
             <button onClick={() => exportProjectPackage(project)}>Export Workflow</button>
+            <button className="secondary" onClick={handleCopy}>
+              Copy JSON
+            </button>
             <button className="secondary" onClick={handleImportClick}>
               Import Workflow
             </button>
