@@ -33,6 +33,14 @@ type DragState = {
   offsetY: number
 } | null
 
+type AuditFindingTone = 'green' | 'amber' | 'red'
+
+type AuditFinding = {
+  tone: AuditFindingTone
+  title: string
+  detail: string
+}
+
 const workflowStatuses: WorkflowNodeStatus[] = ['draft', 'active', 'ready', 'blocked']
 const workflowLanes: WorkflowLane[] = ['image', 'video', 'audio', 'review', 'publish']
 
@@ -167,6 +175,78 @@ function App() {
       terminalNodes: project.scenes.filter((node) => !outgoing.has(node.id)),
     }
   }, [project.connections, project.outputs.length, project.scenes, selectedNode])
+
+  const audit = useMemo(() => {
+    const findings: AuditFinding[] = []
+
+    if (metrics.blockedNodes > 0) {
+      findings.push({
+        tone: 'red',
+        title: `${metrics.blockedNodes} blocked node${metrics.blockedNodes === 1 ? '' : 's'}`,
+        detail: 'Resolve blockers before handing this workflow to another session.',
+      })
+    }
+
+    if (metrics.isolatedNodes > 0) {
+      findings.push({
+        tone: 'amber',
+        title: `${metrics.isolatedNodes} isolated node${metrics.isolatedNodes === 1 ? '' : 's'}`,
+        detail: 'Connect or remove standalone nodes so the workflow has a clear path.',
+      })
+    }
+
+    if (!project.scenes.some((node) => node.lane === 'review')) {
+      findings.push({
+        tone: 'amber',
+        title: 'No review lane',
+        detail: 'Add a review/select node before calling the workflow complete.',
+      })
+    }
+
+    if (!project.scenes.some((node) => node.lane === 'publish')) {
+      findings.push({
+        tone: 'amber',
+        title: 'No publish lane',
+        detail: 'Add a publish/export node so the handoff path is explicit.',
+      })
+    }
+
+    if (project.assets.length === 0) {
+      findings.push({
+        tone: 'amber',
+        title: 'No required materials',
+        detail: 'List the references, source assets, or inputs the workflow depends on.',
+      })
+    }
+
+    if (project.outputs.length === 0) {
+      findings.push({
+        tone: 'amber',
+        title: 'No deliverables yet',
+        detail: 'Add at least one target output so review has a concrete finish line.',
+      })
+    }
+
+    if (findings.length === 0) {
+      findings.push({
+        tone: 'green',
+        title: 'Workflow shape looks healthy',
+        detail: 'The canvas already has clear flow, enough context, and delivery targets.',
+      })
+    }
+
+    const reviewTarget =
+      project.scenes.find((node) => node.status === 'blocked') ??
+      project.scenes.find((node) => node.status === 'draft') ??
+      metrics.terminalNodes[0] ??
+      project.scenes[0] ??
+      null
+
+    return {
+      findings,
+      reviewTarget,
+    }
+  }, [metrics.blockedNodes, metrics.isolatedNodes, metrics.terminalNodes, project.assets.length, project.outputs.length, project.scenes])
 
   const canvasWidth = useMemo(
     () => Math.max(1280, ...project.scenes.map((node) => node.x + 320)),
@@ -891,6 +971,32 @@ function App() {
             <MetricCard label="Isolated" value={String(metrics.isolatedNodes)} compact />
             <MetricCard label="Terminal nodes" value={String(metrics.terminalNodes.length)} compact />
             <MetricCard label="Selected" value={metrics.selected} compact />
+          </div>
+          <div className="audit-actions">
+            <button
+              className="secondary tiny"
+              onClick={() => {
+                if (audit.reviewTarget) {
+                  setSelectedNodeId(audit.reviewTarget.id)
+                }
+              }}
+              disabled={!audit.reviewTarget}
+            >
+              Jump to next review target
+            </button>
+            <span className="helper-text">
+              {audit.reviewTarget
+                ? `Focuses ${audit.reviewTarget.title} first.`
+                : 'No review target available yet.'}
+            </span>
+          </div>
+          <div className="audit-findings">
+            {audit.findings.map((finding) => (
+              <article key={`${finding.title}-${finding.detail}`} className={`audit-finding audit-finding--${finding.tone}`}>
+                <strong>{finding.title}</strong>
+                <p>{finding.detail}</p>
+              </article>
+            ))}
           </div>
           <div className="terminal-list">
             {metrics.terminalNodes.map((node) => (
