@@ -210,6 +210,10 @@ button.tiny {
   grid-column: span 2;
 }
 
+.panel-full {
+  grid-column: 1 / -1;
+}
+
 .panel-heading {
   display: flex;
   justify-content: space-between;
@@ -448,6 +452,67 @@ button.tiny {
   background: rgba(255, 255, 255, 0.05);
   color: #d5efff;
   border: 1px solid rgba(145, 176, 223, 0.12);
+}
+
+.terminal-chip.is-ready {
+  border-color: rgba(126, 249, 174, 0.4);
+  color: #d9ffe9;
+}
+
+.terminal-chip.is-held {
+  border-color: rgba(255, 200, 120, 0.45);
+  color: #ffe7c2;
+}
+
+.handoff-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.handoff-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.handoff-step {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(145, 176, 223, 0.12);
+}
+
+.handoff-step.is-blocked {
+  border-color: rgba(255, 108, 108, 0.28);
+}
+
+.handoff-step-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.handoff-step-top strong {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.handoff-step p,
+.handoff-meta {
+  margin: 0;
+  color: #b7d0e5;
+}
+
+.handoff-meta {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: #8df8ff;
 }
 
 .hidden-file-input {

@@ -23,6 +23,7 @@ import {
   type WorkflowNodeTemplate,
   type WorkflowPackage,
 } from './project-package'
+import { downloadExecutionHandoff, planExecutionHandoff } from './execution-handoff'
 import { sampleWorkflowProject } from './sample-project'
 
 const STORAGE_KEY = 'creative-canvas-editor.project'
@@ -151,6 +152,11 @@ function App() {
     [project.scenes],
   )
 
+  const handoff = useMemo(
+    () => planExecutionHandoff(project, project.updatedAt),
+    [project],
+  )
+
   const metrics = useMemo(() => {
     const outgoing = new Set(project.connections.map((connection) => connection.from))
     const incoming = new Set(project.connections.map((connection) => connection.to))
@@ -227,6 +233,24 @@ function App() {
       })
     }
 
+    const cycleBlocker = handoff.blockers.find((blocker) => blocker.startsWith('Cycle:'))
+    if (cycleBlocker) {
+      findings.push({
+        tone: 'red',
+        title: 'Execution cycle',
+        detail: cycleBlocker,
+      })
+    }
+
+    const selfLoopBlocker = handoff.blockers.find((blocker) => blocker.startsWith('Self-loop:'))
+    if (selfLoopBlocker) {
+      findings.push({
+        tone: 'red',
+        title: 'Self-loop',
+        detail: selfLoopBlocker,
+      })
+    }
+
     if (findings.length === 0) {
       findings.push({
         tone: 'green',
@@ -246,7 +270,15 @@ function App() {
       findings,
       reviewTarget,
     }
-  }, [metrics.blockedNodes, metrics.isolatedNodes, metrics.terminalNodes, project.assets.length, project.outputs.length, project.scenes])
+  }, [
+    handoff.blockers,
+    metrics.blockedNodes,
+    metrics.isolatedNodes,
+    metrics.terminalNodes,
+    project.assets.length,
+    project.outputs.length,
+    project.scenes,
+  ])
 
   const canvasWidth = useMemo(
     () => Math.max(1280, ...project.scenes.map((node) => node.x + 320)),
@@ -258,6 +290,16 @@ function App() {
   )
 
   const handleImportClick = () => fileInputRef.current?.click()
+
+  const handleExportHandoff = () => {
+    const artifact = planExecutionHandoff(project, new Date().toISOString())
+    downloadExecutionHandoff(artifact)
+    setImportMessage(
+      artifact.ready
+        ? `Exported handoff for ${artifact.steps.length} step${artifact.steps.length === 1 ? '' : 's'}`
+        : 'Exported handoff with blockers still listed',
+    )
+  }
 
   const handleCopy = async () => {
     try {
@@ -414,6 +456,9 @@ function App() {
           </p>
           <div className="hero-actions">
             <button onClick={() => exportProjectPackage(project)}>Export Workflow</button>
+            <button className="secondary" onClick={handleExportHandoff}>
+              Export Handoff
+            </button>
             <button className="secondary" onClick={handleCopy}>
               Copy JSON
             </button>
@@ -1004,6 +1049,93 @@ function App() {
                 {node.title}
               </span>
             ))}
+          </div>
+        </section>
+
+        <section className="panel panel-full">
+          <div className="panel-heading">
+            <div>
+              <span className="panel-kicker">Handoff</span>
+              <h2>Execution order</h2>
+            </div>
+            <button className="secondary tiny" onClick={handleExportHandoff}>
+              Export Handoff
+            </button>
+          </div>
+          <p className="helper-text">
+            {handoff.disclaimer} Steps that can start together keep canvas order. Nothing on this
+            list calls another tool.
+          </p>
+          <div className="handoff-status">
+            <span className={`terminal-chip ${handoff.ready ? 'is-ready' : 'is-held'}`}>
+              {handoff.ready ? 'Ready to hand off' : 'Needs attention'}
+            </span>
+            <span className="helper-text">
+              {handoff.steps.length} step{handoff.steps.length === 1 ? '' : 's'} · file handoff
+            </span>
+          </div>
+          {handoff.blockers.length > 0 ? (
+            <div className="audit-findings">
+              {handoff.blockers.map((blocker) => (
+                <article key={blocker} className="audit-finding audit-finding--amber">
+                  <strong>Blocker</strong>
+                  <p>{blocker}</p>
+                </article>
+              ))}
+            </div>
+          ) : null}
+          <div className="handoff-list">
+            {handoff.steps.map((step) => (
+              <article
+                key={step.nodeId}
+                className={`handoff-step ${step.blocked ? 'is-blocked' : ''}`}
+              >
+                <div className="handoff-step-top">
+                  <div>
+                    <span className="node-meta">
+                      {step.order}. {step.lane} · {step.status}
+                      {step.blocked ? ' · held' : ''}
+                    </span>
+                    <strong>{step.title}</strong>
+                  </div>
+                  <button className="ghost tiny" onClick={() => setSelectedNodeId(step.nodeId)}>
+                    Focus
+                  </button>
+                </div>
+                <p className="handoff-meta">
+                  {step.targetTool} · {step.targetSession}
+                </p>
+                <p>{step.action}</p>
+                <p>
+                  {step.inputsFrom.length > 0
+                    ? `Inputs from ${step.inputsFrom
+                        .map((input) =>
+                          input.outputs.length > 0
+                            ? `${input.title} (${input.outputs.join(', ')})`
+                            : input.title,
+                        )
+                        .join('; ')}.`
+                    : 'No upstream inputs.'}
+                </p>
+                <p>
+                  {step.expectedOutputs.length > 0
+                    ? `Expected outputs: ${step.expectedOutputs.join(', ')}.`
+                    : 'No outputs listed.'}
+                </p>
+              </article>
+            ))}
+          </div>
+          {handoff.steps.length === 0 ? (
+            <p className="helper-text">Add a node to build an execution handoff.</p>
+          ) : null}
+        </section>
+
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <span className="panel-kicker">Notes</span>
+              <h2>Workflow notes</h2>
+            </div>
           </div>
           <label className="field field-textarea">
             <span>Workflow notes</span>

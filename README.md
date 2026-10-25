@@ -10,6 +10,7 @@ Creative Canvas Editor is the node-based orchestration tool for creative generat
 - connection removal and node duplication
 - workflow brief, asset requirements, and deliverable planning
 - workflow-health audit cards
+- execution handoff file that orders steps for local tool sessions without calling them
 - save/load workflow JSON
 - starter templates for generation, collection, review, and publishing
 - installable PWA support
