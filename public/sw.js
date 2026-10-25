@@ -7,6 +7,5 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('fetch', () => {
-  // This first version is intentionally lightweight. We only register the worker
-  // so the app is installable as a PWA without adding brittle offline behavior yet.
+  // The worker is registered. This handler does not cache responses or fulfill requests.
 })

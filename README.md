@@ -13,7 +13,6 @@ Creative Canvas Editor is the node-based orchestration tool for creative generat
 - execution handoff file that orders steps for local tool sessions without calling them
 - save/load workflow JSON
 - starter templates for generation, collection, review, and publishing
-- installable PWA support
 
 ## Run locally
 
@@ -24,12 +23,12 @@ npm run dev
 
 Open `http://127.0.0.1:4304`
 
-The current sample workflow shows how to use the editor as the orchestration layer across:
+The current sample workflow, Creative Intake Flow, shows how to use the editor as the orchestration layer across:
 
-- image generation and collection
-- video generation and review
-- audio and SFX planning
-- export and publishing handoff
+- image collection and generation: Gather reference frames and Generate key art concepts
+- video generation and review: Build motion tests and Review and select
+- audio bed composition: Compose audio beds, with a planned Logo sting audio material
+- export and publishing handoff: Package deliverables
 
 ## Local-Only Files
 

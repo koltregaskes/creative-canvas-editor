@@ -430,6 +430,14 @@ function App() {
     }))
   }
 
+  const removeAsset = (assetId: string) => {
+    updateProject((current) => ({
+      ...current,
+      assets: current.assets.filter((asset) => asset.id !== assetId),
+      updatedAt: new Date().toISOString(),
+    }))
+  }
+
   const updateDeliverable = (
     deliverableId: string,
     updater: (deliverable: WorkflowDeliverable) => WorkflowDeliverable,
@@ -439,6 +447,14 @@ function App() {
       outputs: current.outputs.map((output) =>
         output.id === deliverableId ? updater(output) : output,
       ),
+      updatedAt: new Date().toISOString(),
+    }))
+  }
+
+  const removeDeliverable = (deliverableId: string) => {
+    updateProject((current) => ({
+      ...current,
+      outputs: current.outputs.filter((output) => output.id !== deliverableId),
       updatedAt: new Date().toISOString(),
     }))
   }
@@ -857,6 +873,16 @@ function App() {
           <div className="stack-list">
             {project.assets.map((asset) => (
               <div key={asset.id} className="stack-card">
+                <div className="stack-card-toolbar">
+                  <span className="node-meta">Material</span>
+                  <button
+                    className="ghost tiny"
+                    aria-label={`Remove material ${asset.label}`}
+                    onClick={() => removeAsset(asset.id)}
+                  >
+                    Remove
+                  </button>
+                </div>
                 <div className="field-grid">
                   <label className="field">
                     <span>Label</span>
@@ -934,6 +960,16 @@ function App() {
           <div className="stack-list">
             {project.outputs.map((output) => (
               <div key={output.id} className="stack-card">
+                <div className="stack-card-toolbar">
+                  <span className="node-meta">Deliverable</span>
+                  <button
+                    className="ghost tiny"
+                    aria-label={`Remove deliverable ${output.label}`}
+                    onClick={() => removeDeliverable(output.id)}
+                  >
+                    Remove
+                  </button>
+                </div>
                 <div className="field-grid">
                   <label className="field">
                     <span>Label</span>

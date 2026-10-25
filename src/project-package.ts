@@ -179,17 +179,10 @@ export function createWorkflowNode(templateId: WorkflowNodeTemplate, index = 0):
 
 export function addNodeFromTemplate(project: WorkflowPackage, templateId: WorkflowNodeTemplate) {
   const node = createWorkflowNode(templateId, project.scenes.length)
-  const previousNode = project.scenes[project.scenes.length - 1]
 
   return {
     ...project,
     scenes: [...project.scenes, node],
-    connections: previousNode
-      ? [
-          ...project.connections,
-          { id: crypto.randomUUID(), from: previousNode.id, to: node.id },
-        ]
-      : project.connections,
   }
 }
 

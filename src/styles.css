@@ -383,6 +383,14 @@ button.tiny {
   align-items: center;
 }
 
+.stack-card-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
 .audit-grid {
   display: grid;
   gap: 0.8rem;
