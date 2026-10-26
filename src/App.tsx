@@ -114,8 +114,9 @@ function App() {
     }
 
     const handlePointerMove = (event: PointerEvent) => {
-      const canvasBounds = canvasRef.current?.getBoundingClientRect()
-      if (!canvasBounds) {
+      const canvas = canvasRef.current
+      const canvasBounds = canvas?.getBoundingClientRect()
+      if (!canvas || !canvasBounds) {
         return
       }
 
@@ -125,8 +126,8 @@ function App() {
           node.id === dragState.id
             ? {
                 ...node,
-                x: event.clientX - canvasBounds.left - dragState.offsetX,
-                y: event.clientY - canvasBounds.top - dragState.offsetY,
+                x: event.clientX - canvasBounds.left + canvas.scrollLeft - dragState.offsetX,
+                y: event.clientY - canvasBounds.top + canvas.scrollTop - dragState.offsetY,
               }
             : node,
         ),
@@ -285,7 +286,7 @@ function App() {
     [project.scenes],
   )
   const canvasHeight = useMemo(
-    () => Math.max(680, ...project.scenes.map((node) => node.y + 180)),
+    () => Math.max(680, ...project.scenes.map((node) => node.y + 280)),
     [project.scenes],
   )
 
@@ -393,7 +394,7 @@ function App() {
     }
 
     updateProject((current) => {
-      const duplicate = cloneWorkflowNode(selectedNode, current.scenes.length)
+      const duplicate = cloneWorkflowNode(selectedNode, current.scenes)
       return {
         ...current,
         scenes: [...current.scenes, duplicate],
@@ -684,6 +685,9 @@ function App() {
                   </span>
                   <strong>{node.title}</strong>
                   <small>{templateDefinitions[node.template].caption}</small>
+                  {node.outputs.length > 0 ? <small>Outputs: {node.outputs.join(', ')}</small> : null}
+                  {node.tags.length > 0 ? <small>Tags: {node.tags.join(', ')}</small> : null}
+                  {node.notes ? <small>{node.notes}</small> : null}
                 </button>
               ))}
             </div>
@@ -1158,6 +1162,8 @@ function App() {
                     ? `Expected outputs: ${step.expectedOutputs.join(', ')}.`
                     : 'No outputs listed.'}
                 </p>
+                {step.tags.length > 0 ? <p>Tags: {step.tags.join(', ')}.</p> : null}
+                {step.notes ? <p>{step.notes}</p> : null}
               </article>
             ))}
           </div>

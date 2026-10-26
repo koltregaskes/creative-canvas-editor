@@ -177,22 +177,51 @@ export function createWorkflowNode(templateId: WorkflowNodeTemplate, index = 0):
   }
 }
 
+const nodeFootprint = { width: 300, height: 220 }
+const nodeSlot = { x: 330, y: 250 }
+
+export function findOpenNodePosition(scenes: Array<{ x: number; y: number }>) {
+  const collides = (x: number, y: number) =>
+    scenes.some(
+      (scene) =>
+        x < scene.x + nodeFootprint.width &&
+        x + nodeFootprint.width > scene.x &&
+        y < scene.y + nodeFootprint.height &&
+        y + nodeFootprint.height > scene.y,
+    )
+
+  for (let row = 0; row < 16; row += 1) {
+    for (let col = 0; col < 6; col += 1) {
+      const x = 70 + col * nodeSlot.x
+      const y = 110 + row * nodeSlot.y
+      if (!collides(x, y)) {
+        return { x, y }
+      }
+    }
+  }
+
+  const maxX = scenes.reduce((max, scene) => Math.max(max, scene.x), 0)
+  return { x: maxX + nodeSlot.x, y: 110 }
+}
+
 export function addNodeFromTemplate(project: WorkflowPackage, templateId: WorkflowNodeTemplate) {
   const node = createWorkflowNode(templateId, project.scenes.length)
+  const spot = findOpenNodePosition(project.scenes)
 
   return {
     ...project,
-    scenes: [...project.scenes, node],
+    scenes: [...project.scenes, { ...node, x: spot.x, y: spot.y }],
   }
 }
 
-export function cloneWorkflowNode(node: WorkflowNode, index: number): WorkflowNode {
+export function cloneWorkflowNode(node: WorkflowNode, scenes: Array<{ x: number; y: number }>): WorkflowNode {
+  const spot = findOpenNodePosition(scenes)
   return {
     ...node,
     id: crypto.randomUUID(),
     title: `${node.title} Copy`,
-    x: node.x + 42 + index * 4,
-    y: node.y + 42 + index * 4,
+    x: spot.x,
+    y: spot.y,
   }
 }
 

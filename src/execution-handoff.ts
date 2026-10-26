@@ -25,6 +25,7 @@ export type ExecutionHandoffStep = {
   mode: 'file-handoff'
   instructions: string
   notes: string
+  tags: string[]
   inputsFrom: ExecutionHandoffInput[]
   expectedOutputs: string[]
   blocked: boolean
@@ -202,6 +203,37 @@ export function planExecutionHandoff(project: WorkflowPackage, generatedAt: stri
     )
   }
 
+  const linkedFrom = new Set(project.connections.map((edge) => edge.from))
+  const linkedTo = new Set(project.connections.map((edge) => edge.to))
+  const isolatedIds = bySceneOrder(
+    project.scenes
+      .filter((node) => !linkedFrom.has(node.id) && !linkedTo.has(node.id))
+      .map((node) => node.id),
+    orderIndex,
+  )
+  if (isolatedIds.length > 0) {
+    const titles = isolatedIds.map((id) => nodeById.get(id)?.title ?? id).join(', ')
+    blockers.push(
+      `${isolatedIds.length} isolated node${isolatedIds.length === 1 ? '' : 's'}: ${titles}.`,
+    )
+  }
+
+  if (!project.scenes.some((node) => node.lane === 'review')) {
+    blockers.push('No review lane.')
+  }
+
+  if (!project.scenes.some((node) => node.lane === 'publish')) {
+    blockers.push('No publish lane.')
+  }
+
+  if (project.assets.length === 0) {
+    blockers.push('No required materials.')
+  }
+
+  if (project.outputs.length === 0) {
+    blockers.push('No deliverables yet.')
+  }
+
   const problemIds = new Set<string>([...selfLoopIds, ...cyclicIds])
 
   const steps: ExecutionHandoffStep[] = ordered.map((id, index) => {
@@ -232,6 +264,7 @@ export function planExecutionHandoff(project: WorkflowPackage, generatedAt: stri
       mode: 'file-handoff',
       instructions: node.instructions,
       notes: node.notes,
+      tags: node.tags,
       inputsFrom,
       expectedOutputs: node.outputs,
       blocked: node.status === 'blocked' || problemIds.has(node.id),
